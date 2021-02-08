@@ -10,7 +10,7 @@ CREATE TABLE department (
     name VARCHAR(30)
 );
 
-CREATE TABLE role (
+CREATE TABLE roles (
 	id INTEGER NOT NULL AUTO_INCREMENT, 
     PRIMARY KEY (id),
     title VARCHAR(30),
