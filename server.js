@@ -22,8 +22,8 @@ const start = () => {
             message: "Employee Tracker: What would you like to do?",
             choices: [
                 "View all Employees",
-                "View All Employees by Department",
-                "View All Employees by Role",
+                "View All Departments",
+                "View All Roles",
                 "Add a department",
                 "Add a role",
                 "Add an employee",
@@ -126,7 +126,7 @@ function addDepartment () {
 function addRole () {
     connection.query("SELECT name, id FROM department", (err,res) => {
         if (err) throw err;
-        console.log(res)
+        //console.log(res)
         const currentDepartment = res.map(department =>({name : department.name, value:department.id}));
         ///Get index of department id but show by name???
         inquirer.prompt([
@@ -151,7 +151,8 @@ function addRole () {
             console.log(role);
             connection.query("INSERT INTO roles SET ? ", role, (err,res) => {
                 if (err) throw err;
-                console.log(res);
+                console.log(`New ${role.title} role successfully added`);
+                start();
             })
             /*
             if (currentRoles.include(res.title)) {
