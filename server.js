@@ -18,7 +18,7 @@ const start = () => {
     return inquirer.prompt([
         {
             type: "list",
-            name: "newPrompt",
+            name: "action",
             message: "Employee Tracker: What would you like to do?",
             choices: [
                 "View all Employees",
@@ -31,16 +31,15 @@ const start = () => {
             ],
         },
     ])
-    .then(function(response){
-        //console.log(response.newPrompt)
-        switch (response.newPrompt) {
+    .then((answer) => {
+        switch (answer.action) {
             case "View all Employees":
                 viewAllEmployees();
                 break;
-            case "View All Employees by Department":
+            case "View All Departments":
                 viewAllDepartments();
                 break;
-            case "View All Employees by Role":
+            case "View All Roles":
                 viewAllRoles();
                 break;
             case "Add a department":
@@ -65,7 +64,9 @@ const start = () => {
 //View all employees
 function viewAllEmployees() {
     connection.query(
-        'SELECT e.id, e.first_name, e.last_name, r.title, r.salary FROM employee e JOIN roles r on e.role_id = r.id', (err, res) => {
+        `SELECT e.id, e.first_name, e.last_name, r.title, r.salary 
+        FROM employee e 
+        JOIN roles r on e.role_id = r.id`, (err, res) => {
         if (err) throw err;
         console.table(res);
         start();
@@ -82,7 +83,7 @@ function viewAllDepartments() {
 }
 
 //View all roles
-function viewAllRoles () {
+function viewAllRoles() {
     connection.query('SELECT * FROM roles', (err,res) => {
         if (err) throw err;
         console.table(res);
@@ -94,6 +95,9 @@ function viewAllRoles () {
 function addDepartment () {
     connection.query("SELECT name FROM department", (err,res) => {
         if (err) throw err;
+        console.log("Existing departments:")
+        console.table(res);
+
         const currentDepartments = res.map((department) => department.name);
         inquirer.prompt([
             {
@@ -114,7 +118,7 @@ function addDepartment () {
                 ],
                 (err) => {
                     if (err) throw err;
-                    console.table(res);
+                    console.log(`New ${res.department} department was added`);
                     start();
                 }
             )}
@@ -148,7 +152,7 @@ function addRole () {
                 ///////Dynamically select id and name from department table
             }
         ]).then(function(role){
-            console.log(role);
+            //console.log(role);
             connection.query("INSERT INTO roles SET ? ", role, (err,res) => {
                 if (err) throw err;
                 console.log(`New ${role.title} role successfully added`);
@@ -171,6 +175,55 @@ function addRole () {
 
 
 ///Add an employee
+function addEmployee() {
+    connection.query("SELECT CONCAT(e.first_name, ' ', e.last_name) AS employee, e.id FROM employee e", (err, res) => {
+        if(err) throw err;
+
+        connection.query(
+            `SELECT title, id
+            FROM roles`, (err, res1) => {
+            if (err) throw err;
+
+            const rolesList = res1.map(roles =>({name : roles.title, value : roles.id}));
+            console.log(rolesList);
+            const managerList = res.map(employee => ({name: employee.employee, value: employee.id}));
+            inquirer.prompt([
+                {
+                    name: "first_name",
+                    type: "input",
+                    message: "Enter employee's first name: "
+                }, 
+                {
+                    name: "last_name",
+                    type: "input",
+                    message: "Enter employee's last name: "
+                },
+                {
+                    name: "role_id",
+                    type: "list",
+                    message: "Select employee's role :",
+                    choices: rolesList.filter((item, index) => rolesList.indexOf(item) === index),
+                },
+                {
+                    name: "manager_id",
+                    type: "list",
+                    message: "Select employee's manager :",
+                    choices: managerList.filter((item, index) => managerList.indexOf(item) === index),
+                }
+            ],
+            ).then((answer) => {
+                connection.query(`INSERT INTO employee SET ?`, answer, (err, res) => {
+                    if (err) throw err;
+                    console.log(` ${answer.first_name} ${answer.last_name} has been successfully added`);
+                    start();
+                })
+            })
+            })
+//        const currentDepartment = res.map(department =>({name : department.name, value:department.id}));
+
+        
+    })
+}
 
 
 ///BONUS
