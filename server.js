@@ -27,6 +27,11 @@ const start = () => {
                 "Add a department",
                 "Add a role",
                 "Add an employee",
+                "Update employee role",
+                "Delete employee",
+                "Delete a department",
+                "Delete a role",
+                "View total budget of a department",
                 "Exit application"
             ],
         },
@@ -50,8 +55,22 @@ const start = () => {
                 break;         
             case "Add an employee":
                 addEmployee();
+                break;
             case "Update employee role":
-                updateEmployee();
+                updateEmployeeRole();
+                break;
+            case "Delete employee":
+                deleteEmployee();
+                break;
+            case "Delete a department":
+                deleteDepartment();
+                break;
+            case "Delete a role":
+                deleteRole();
+                break;
+            case "View total budget of a department":
+                viewDepartmentBudget();
+                break;
             default:
                 connection.end()
                 break;
@@ -118,7 +137,7 @@ function addDepartment () {
                 ],
                 (err) => {
                     if (err) throw err;
-                    console.log(`New ${res.department} department was added`);
+                    console.log(`/////New ${res.department} department was added/////`);
                     start();
                 }
             )}
@@ -155,28 +174,18 @@ function addRole () {
             //console.log(role);
             connection.query("INSERT INTO roles SET ? ", role, (err,res) => {
                 if (err) throw err;
-                console.log(`New ${role.title} role successfully added`);
+                console.log(`/////New ${role.title} role successfully added //////`);
                 start();
             })
-            /*
-            if (currentRoles.include(res.title)) {
-                console.log("Role already exists");
-                start();
-            } else {
-                connection.query('')
-                //dynamically add  role plus department name from department table)
-            
-            }
-            */
-
         })
     })
 }
 
-
 ///Add an employee
 function addEmployee() {
-    connection.query("SELECT CONCAT(e.first_name, ' ', e.last_name) AS employee, e.id FROM employee e", (err, res) => {
+    connection.query(
+        `SELECT CONCAT(e.first_name, ' ', e.last_name) AS employee, e.id 
+        FROM employee e`, (err, res) => {
         if(err) throw err;
 
         connection.query(
@@ -185,7 +194,7 @@ function addEmployee() {
             if (err) throw err;
 
             const rolesList = res1.map(roles =>({name : roles.title, value : roles.id}));
-            console.log(rolesList);
+            //console.log(rolesList);
             const managerList = res.map(employee => ({name: employee.employee, value: employee.id}));
             inquirer.prompt([
                 {
@@ -214,24 +223,189 @@ function addEmployee() {
             ).then((answer) => {
                 connection.query(`INSERT INTO employee SET ?`, answer, (err, res) => {
                     if (err) throw err;
-                    console.log(` ${answer.first_name} ${answer.last_name} has been successfully added`);
+                    console.log(`/////${answer.first_name} ${answer.last_name} has been successfully added/////`);
                     start();
                 })
             })
-            })
-//        const currentDepartment = res.map(department =>({name : department.name, value:department.id}));
-
-        
+            })       
     })
 }
 
+//Update employee roles
+function updateEmployeeRole() {
+    connection.query(
+        `SELECT CONCAT(e.first_name, ' ', e.last_name) AS employees, e.id, r.title
+        FROM employee e 
+        LEFT JOIN roles r 
+        ON r.id = e.role_id`, (err, res) => {
+        if (err) throw err;
+
+        const rolesList = res.map(roles =>({name : roles.title, value : roles.id}));
+        const employeeList = res.map(employee => ({name: employee.employees, value: employee.id}));
+        //console.log("Roles List", rolesList);
+        //console.log("Employee List", employeeList);
+        inquirer.prompt([
+            {
+                name: "employee",
+                type: "list",
+                message: "Select employee who's role needs to be updated: ",
+                choices: employeeList
+            },
+            {
+                name: "role",
+                type: "list",
+                message: "Select employee's updated role: ",
+                choices: rolesList.filter((item, index) => rolesList.indexOf(item) === index),
+            }
+        ],
+        ).then((answer) => {
+            //console.log("answer role ", answer.role, "answer.employee", answer.employee);
+            connection.query(
+                `UPDATE employee 
+                SET role_id =?
+                WHERE id = ?`, 
+                [answer.role, answer.employee],
+                (err, res) => {
+                    console.log("UpdateEmployeeRole ", res);
+                
+                    if (err) throw err;
+                    console.log(`/////Successfully updated employee role/////`);
+                    start();
+                }
+            )
+        })
+    })
+}
 
 ///BONUS
-//Update employee managers
-//View employess by manager
-//Delete departments, roles and employees
-//View combined saleries of all employess in that department 
 
+//Delete an employee
+function deleteEmployee() {
+    connection.query(
+        `SELECT CONCAT(e.first_name, ' ', e.last_name) AS employees, e.id
+        FROM employee e`, (err, res) => {
+            if (err) throw err;
+
+            //const employeeList = res.map(employee => ({name: employee.employees, value: employee.id}));
+            const employeeList = res.map(employee => ({name: employee.employees}));
+            //console.log("const employeeList", employeeList)
+            inquirer.prompt([
+                {
+                    name: "employee",
+                    type: "list",
+                    message: "Select employee you'd like to remove: ",
+                    choices: employeeList
+                }
+            ],
+            ).then((answer) => {
+                //console.log(answer);
+                connection.query(
+                    `DELETE FROM employee WHERE CONCAT(employee.first_name, ' ', employee.last_name) = ?`,
+                    [answer.employee], (err,res) => {
+                        if (err) throw err;
+                        console.log(`/////Successfully removed employee: " + res.employee/////`);
+                        start();
+                    }
+                )
+            })
+        }
+    )
+}
+
+//Delete roles
+function deleteRole() {
+    connection.query(
+        `SELECT id, title, salary FROM roles;`, (err, res) => {
+            if (err) throw err;
+            const existingRoles = res.map(roles =>({name : roles.title}));
+            inquirer.prompt([
+                {
+                    name: "role",
+                    type: "list",
+                    message: "Select department you'd like to remove: ",
+                    choices: existingRoles
+                }
+            ],
+        ).then((answer) => {
+            connnection.query(
+                `DELETE FROM roles WHERE name =?`, [answer.role], (err,res) => {
+                    if (err) throw err;
+                    console.log(`/////Successfully removed role/////`);
+                }
+            )
+        })
+        }
+    )
+}
+
+//Delete a department
+function deleteDepartment() {
+    connection.query(
+        `SELECT * FROM department`,  (err, res) => {
+            if (err) throw err;
+        const departmentList = res.map(department => ({name: department.name}));
+        inquirer.prompt([
+            {
+                name: "department",
+                type: "list",
+                message: "Select department you'd like to remove: ",
+                choices: departmentList
+            }
+        ],
+        ).then((response) => {
+            connection.query(
+                `DELETE FROM department
+                WHERE name = ?`, [response.department], (err,res) => {
+                    if (err) throw err;
+                    console.log(`/////Department successfully deleted/////`);
+                    start();
+                }
+            )
+        })
+        }
+    )
+}
+
+
+//Update employee managers
+//View employees by manager
+
+//View combined saleries of all employess in that department 
+function viewDepartmentBudget() {
+    connection.query(
+        `SELECT department.name, roles.salary, department.id FROM department
+        JOIN roles
+        WHERE roles.department_id = department_id`, (err, res) => {
+            if (err) throw err;
+
+            const allDepartments = res.map(department => ({name: department.name}));
+            const departmentName;
+            
+            inquirer.prompt([
+                {
+                    name: "department",
+                    type: "list", 
+                    message: "Select department to view total budget:",
+                    choices: departmentName
+                }
+            ],
+            ).then((answer) => {
+                connection.query(
+                    `SELECT SUM(roles.salary) AS total_budget
+                    FROM department
+                    JOIN roles
+                    WHERE department.name = ?`, 
+                    [answer.department], (err,res) => {
+                        if (err) throw err;
+                        console.log("Total salary budget for this department is:")
+                        console.table(res);
+                        start();
+                    }
+                )
+            })
+        }
+    )
+}
 
 connection.connect((err) => {
     if(err) throw err;
