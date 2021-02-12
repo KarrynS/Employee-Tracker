@@ -370,19 +370,31 @@ function deleteDepartment() {
 
 //BONUS: Update employee managers
 
-//BONUS: View employees by manager
 
+//BONUS: View employees by manager
+/*function viewManager () {
+    connection.query(
+
+    )
+}
+*/
 
 //VBONUS: View combined saleries of all employess in that department 
 function viewDepartmentBudget() {
     connection.query(
         `SELECT department.name, roles.salary, department.id FROM department
         JOIN roles
-        WHERE roles.department_id = department_id`, (err, res) => {
+        WHERE roles.department_id = department.id`, (err, res) => {
             if (err) throw err;
+            console.log("department", res)
+            const departmentName = res.map((department => ({name: department.name})));
+            console.log(departmentName, "departmentName")
 
-            const departmentName = res.map(department => ({name: department.name}));
-            
+            const departmentNameFilter = res.filter(department => {
+                return department.name;
+            });
+            console.log(departmentNameFilter, "departmentNameFilter");
+
             inquirer.prompt([
                 {
                     name: "department",
@@ -394,9 +406,10 @@ function viewDepartmentBudget() {
             ).then((answer) => {
                 connection.query(
                     `SELECT SUM(roles.salary) AS total_budget
-                    FROM department
-                    JOIN roles
-                    WHERE department.name = ?`, 
+                    FROM roles
+                    inner JOIN department
+                    ON department.id = roles.department_id
+                    WHERE department.name= ?`, 
                     [answer.department], (err,res) => {
                         if (err) throw err;
                         console.log("Total salary budget for this department is:")
@@ -415,49 +428,3 @@ connection.connect((err) => {
     start();
 });
 
-
-/*
-function updateEmployeeRole() {
-    connection.query(
-        `SELECT CONCAT(e.first_name, ' ', e.last_name) AS employees, e.id, r.title
-        FROM employee e 
-        LEFT JOIN roles r 
-        ON r.id = e.role_id`, (err, res) => {
-        if (err) throw err;
-
-        const rolesList = res.map(roles =>({name : roles.title, value : roles.id}));
-        const employeeList = res.map(employee => ({name: employee.employees, value: employee.id}));
-        //console.log("Roles List", rolesList);
-        //console.log("Employee List", employeeList);
-        inquirer.prompt([
-            {
-                name: "employee",
-                type: "list",
-                message: "Select employee who's role needs to be updated: ",
-                choices: employeeList
-            },
-            {
-                name: "role",
-                type: "list",
-                message: "Select employee's updated role: ",
-                choices: rolesList.filter((item, index) => rolesList.indexOf(item) === index),
-            }
-        ],
-        ).then((answer) => {
-            //console.log("answer role ", answer.role, "answer.employee", answer.employee);
-            connection.query(
-                `UPDATE employee 
-                SET role_id =?
-                WHERE id = ?`, 
-                [answer.role, answer.employee],
-                (err, res) => {
-                    //console.log("UpdateEmployeeRole ", res);
-                    if (err) throw err;
-                    console.log(`/////Successfully updated employee role/////`);
-                    start();
-                }
-            )
-        })
-    })
-}
-*/

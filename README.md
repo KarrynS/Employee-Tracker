@@ -10,9 +10,6 @@
 [Questions](#questions)
 
 
-https://drive.google.com/file/d/1aBkEXWRnTvBFzcb40cxsyagBeSSDWhyw/view
-
-
 ## Description
 A CLI application that allows for easier management of a company's employess. Features include viewing, adding and deleting employees, departments and roles as well as updating employee roles.
 
