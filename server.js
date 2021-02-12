@@ -374,9 +374,16 @@ function deleteDepartment() {
 //BONUS: View employees by manager
 /*function viewManager () {
     connection.query(
-
+        `
+        `, (err, res) => {
+            if(err) throw err;
+            console.table(res);
+            start();
+        }
     )
 }
+
+
 */
 
 //VBONUS: View combined saleries of all employess in that department 
