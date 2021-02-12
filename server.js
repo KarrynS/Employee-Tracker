@@ -24,9 +24,9 @@ const start = () => {
                 "View all Employees",
                 "View All Departments",
                 "View All Roles",
+                "Add an employee",
                 "Add a department",
                 "Add a role",
-                "Add an employee",
                 "Update employee role",
                 "Delete employee",
                 "Delete a department",
@@ -256,18 +256,17 @@ function updateEmployeeRole() {
                 type: "list",
                 message: "Select employee's updated role: ",
                 choices: rolesList.filter((item, index) => rolesList.indexOf(item) === index),
-            }
+            },
         ],
         ).then((answer) => {
-            //console.log("answer role ", answer.role, "answer.employee", answer.employee);
+            console.log("answer role ", answer.role, "answer.employee", answer.employee);
             connection.query(
                 `UPDATE employee 
                 SET role_id =?
                 WHERE id = ?`, 
                 [answer.role, answer.employee],
                 (err, res) => {
-                    console.log("UpdateEmployeeRole ", res);
-                
+                    //console.log("UpdateEmployeeRole ", res);
                     if (err) throw err;
                     console.log(`/////Successfully updated employee role/////`);
                     start();
@@ -279,7 +278,7 @@ function updateEmployeeRole() {
 
 ///BONUS
 
-//Delete an employee
+//BONUS: Delete an employee
 function deleteEmployee() {
     connection.query(
         `SELECT CONCAT(e.first_name, ' ', e.last_name) AS employees, e.id
@@ -303,7 +302,7 @@ function deleteEmployee() {
                     `DELETE FROM employee WHERE CONCAT(employee.first_name, ' ', employee.last_name) = ?`,
                     [answer.employee], (err,res) => {
                         if (err) throw err;
-                        console.log(`/////Successfully removed employee: " + res.employee/////`);
+                        console.log(`/////Successfully removed employee/////`);
                         start();
                     }
                 )
@@ -312,7 +311,7 @@ function deleteEmployee() {
     )
 }
 
-//Delete roles
+//BONUS: Delete roles
 function deleteRole() {
     connection.query(
         `SELECT id, title, salary FROM roles;`, (err, res) => {
@@ -327,10 +326,12 @@ function deleteRole() {
                 }
             ],
         ).then((answer) => {
-            connnection.query(
-                `DELETE FROM roles WHERE name =?`, [answer.role], (err,res) => {
+            //console.log(answer.role);
+            connection.query(
+                `DELETE FROM roles WHERE title =?`, [answer.role], (err,res) => {
                     if (err) throw err;
                     console.log(`/////Successfully removed role/////`);
+                    start();
                 }
             )
         })
@@ -338,7 +339,7 @@ function deleteRole() {
     )
 }
 
-//Delete a department
+//BONUS: Delete a department
 function deleteDepartment() {
     connection.query(
         `SELECT * FROM department`,  (err, res) => {
@@ -367,10 +368,12 @@ function deleteDepartment() {
 }
 
 
-//Update employee managers
-//View employees by manager
+//BONUS: Update employee managers
 
-//View combined saleries of all employess in that department 
+//BONUS: View employees by manager
+
+
+//VBONUS: View combined saleries of all employess in that department 
 function viewDepartmentBudget() {
     connection.query(
         `SELECT department.name, roles.salary, department.id FROM department
@@ -378,8 +381,7 @@ function viewDepartmentBudget() {
         WHERE roles.department_id = department_id`, (err, res) => {
             if (err) throw err;
 
-            const allDepartments = res.map(department => ({name: department.name}));
-            const departmentName;
+            const departmentName = res.map(department => ({name: department.name}));
             
             inquirer.prompt([
                 {
@@ -412,3 +414,50 @@ connection.connect((err) => {
     console.log(`connected as id ${connection.threadId}/n`);
     start();
 });
+
+
+/*
+function updateEmployeeRole() {
+    connection.query(
+        `SELECT CONCAT(e.first_name, ' ', e.last_name) AS employees, e.id, r.title
+        FROM employee e 
+        LEFT JOIN roles r 
+        ON r.id = e.role_id`, (err, res) => {
+        if (err) throw err;
+
+        const rolesList = res.map(roles =>({name : roles.title, value : roles.id}));
+        const employeeList = res.map(employee => ({name: employee.employees, value: employee.id}));
+        //console.log("Roles List", rolesList);
+        //console.log("Employee List", employeeList);
+        inquirer.prompt([
+            {
+                name: "employee",
+                type: "list",
+                message: "Select employee who's role needs to be updated: ",
+                choices: employeeList
+            },
+            {
+                name: "role",
+                type: "list",
+                message: "Select employee's updated role: ",
+                choices: rolesList.filter((item, index) => rolesList.indexOf(item) === index),
+            }
+        ],
+        ).then((answer) => {
+            //console.log("answer role ", answer.role, "answer.employee", answer.employee);
+            connection.query(
+                `UPDATE employee 
+                SET role_id =?
+                WHERE id = ?`, 
+                [answer.role, answer.employee],
+                (err, res) => {
+                    //console.log("UpdateEmployeeRole ", res);
+                    if (err) throw err;
+                    console.log(`/////Successfully updated employee role/////`);
+                    start();
+                }
+            )
+        })
+    })
+}
+*/
