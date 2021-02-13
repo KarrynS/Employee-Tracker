@@ -11,7 +11,7 @@
 
 
 ## Description
-A CLI application that allows for easier management of a company's employess. Features include viewing, adding and deleting employees, departments and roles as well as updating employee roles.
+A CLI application that allows for easier management of a company's employess. Features include viewing, adding and deleting employees, departments and roles as well as updating employee roles and viewing total department salary budget.
 
 Techonologies utilised :  Node.js, inquirer and mySQL.
 

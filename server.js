@@ -149,9 +149,7 @@ function addDepartment () {
 function addRole () {
     connection.query("SELECT name, id FROM department", (err,res) => {
         if (err) throw err;
-        //console.log(res)
         const currentDepartment = res.map(department =>({name : department.name, value:department.id}));
-        ///Get index of department id but show by name???
         inquirer.prompt([
             {
                 name: "title",
@@ -168,10 +166,8 @@ function addRole () {
                 type: "list",
                 message: "Department of new role:  ",
                 choices: currentDepartment
-                ///////Dynamically select id and name from department table
             }
         ]).then(function(role){
-            //console.log(role);
             connection.query("INSERT INTO roles SET ? ", role, (err,res) => {
                 if (err) throw err;
                 console.log(`/////New ${role.title} role successfully added //////`);
@@ -194,7 +190,6 @@ function addEmployee() {
             if (err) throw err;
 
             const rolesList = res1.map(roles =>({name : roles.title, value : roles.id}));
-            //console.log(rolesList);
             const managerList = res.map(employee => ({name: employee.employee, value: employee.id}));
             inquirer.prompt([
                 {
@@ -242,8 +237,6 @@ function updateEmployeeRole() {
 
         const rolesList = res.map(roles =>({name : roles.title, value : roles.id}));
         const employeeList = res.map(employee => ({name: employee.employees, value: employee.id}));
-        //console.log("Roles List", rolesList);
-        //console.log("Employee List", employeeList);
         inquirer.prompt([
             {
                 name: "employee",
@@ -266,7 +259,6 @@ function updateEmployeeRole() {
                 WHERE id = ?`, 
                 [answer.role, answer.employee],
                 (err, res) => {
-                    //console.log("UpdateEmployeeRole ", res);
                     if (err) throw err;
                     console.log(`/////Successfully updated employee role/////`);
                     start();
@@ -287,7 +279,6 @@ function deleteEmployee() {
 
             //const employeeList = res.map(employee => ({name: employee.employees, value: employee.id}));
             const employeeList = res.map(employee => ({name: employee.employees}));
-            //console.log("const employeeList", employeeList)
             inquirer.prompt([
                 {
                     name: "employee",
@@ -297,7 +288,6 @@ function deleteEmployee() {
                 }
             ],
             ).then((answer) => {
-                //console.log(answer);
                 connection.query(
                     `DELETE FROM employee WHERE CONCAT(employee.first_name, ' ', employee.last_name) = ?`,
                     [answer.employee], (err,res) => {
@@ -393,14 +383,11 @@ function viewDepartmentBudget() {
         JOIN roles
         WHERE roles.department_id = department.id`, (err, res) => {
             if (err) throw err;
-            console.log("department", res)
             const departmentName = res.map((department => ({name: department.name})));
-            console.log(departmentName, "departmentName")
 
-            const departmentNameFilter = res.filter(department => {
-                return department.name;
-            });
-            console.log(departmentNameFilter, "departmentNameFilter");
+            //const departmentNameFilter = res.filter(department => {
+            //    return department.name;
+            //});
 
             inquirer.prompt([
                 {
