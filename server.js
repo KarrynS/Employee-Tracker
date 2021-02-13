@@ -24,6 +24,8 @@ const start = () => {
                 "View all Employees",
                 "View All Departments",
                 "View All Roles",
+                "View employees by role",
+                "View employees by department",
                 "Add an employee",
                 "Add a department",
                 "Add a role",
@@ -46,6 +48,12 @@ const start = () => {
                 break;
             case "View All Roles":
                 viewAllRoles();
+                break;
+            case "View employees by role":
+                viewEmployeesByRole();
+                break;
+            case "View employees by department":
+                viewEmployeesByDepartment();
                 break;
             case "Add a department":
                 addDepartment();
@@ -108,6 +116,73 @@ function viewAllRoles() {
         console.table(res);
         start();
     })
+}
+
+//View employees by role
+function viewEmployeesByRole() {
+    connection.query(
+        `SELECT roles.title, roles.id FROM roles`, (err, res) => {
+            if(err) throw err;
+            const roles = res.map(({ id, title}) => ({
+                value: id,
+                name: title,
+            }));
+            inquirer.prompt([
+                {
+                    name: "role", 
+                    type: "list", 
+                    message: "What role would you like to view?",
+                    choices: roles
+                }, 
+            ]).then(function(answer) {
+                connection.query(
+                    `SELECT e.id, CONCAT(e.first_name, " ", e.last_name) AS name, roles.title, roles.salary
+                    FROM employee e
+                    LEFT JOIN roles ON e.role_id = roles.id
+                    LEFT JOIN employee ON e.manager_id = e.id
+                    WHERE e.role_id = ?`, (answer.role), (err,res) => {
+                        if (err) throw err;
+                        console.table(res);
+                        start();
+                    }
+                )
+            })
+        }
+    )
+}
+
+//View employees by department
+function viewEmployeesByDepartment() {
+    connection.query(
+        `SELECT * FROM department`, (err,res) => {
+            if(err) throw err;
+            const department = res.map(({id, name}) => ({
+                value: id,
+                name: name,
+            }));
+            inquirer.prompt([
+                {
+                    name: "department",
+                    type: "list",
+                    message: "Which department would you like to view?",
+                    choices: department
+                }
+            ]).then((answer) => {
+                connection.query(
+                    `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name, roles.title, roles.salary, department.name AS department, CONCAT(mx.first_name, " ", mx.last_name) AS manager
+                    FROM employee 
+                    LEFT JOIN roles ON employee.role_id = roles.id
+                    LEFT JOIN department ON roles.department_id = department.id 
+                    LEFT JOIN employee AS mx ON employee.manager_id = mx.id
+                    WHERE department.id = ?`, (answer.department), (err, res) => {
+                        if (err) throw err;
+                        console.table(res);
+                        start();
+                    }
+                )
+            })
+        }
+    )
 }
 
 //Adding a department
@@ -252,7 +327,6 @@ function updateEmployeeRole() {
             },
         ],
         ).then((answer) => {
-            console.log("answer role ", answer.role, "answer.employee", answer.employee);
             connection.query(
                 `UPDATE employee 
                 SET role_id =?

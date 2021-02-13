@@ -21,7 +21,9 @@ Clone the package and inside the package directory install (npm i) all dependenc
 ## Usage
 After installation, enter 'npm start' into the command line to run the application.
 <br>
-<a href="https://drive.google.com/file/d/1aBkEXWRnTvBFzcb40cxsyagBeSSDWhyw/view"> Link to Demo Video</a>
+<a href="https://drive.google.com/file/d/1aBkEXWRnTvBFzcb40cxsyagBeSSDWhyw/view" target="_blank"> Link to Demo Video 1</a>
+<br>
+<a href="https://drive.google.com/file/d/1RY2EagB4SUJhD6FGTx2gALXXRja_jrdW/view" target="_blank"> Link to Demo Video 2</a>
 <br>
 <img src="./Assets/Employee_Tracker_ScreenShot.png">
 
